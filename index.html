@@ -1,284 +1,1383 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark"> <!-- Set to dark mode by default for the new design -->
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Núcleobot - Generador de Prompts Creativos</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-    /* Paleta Núcleo Colectivo */
-    :root {
-      --amarillo: #FFD93B;
-      --violeta: #6A0DAD;
-      --negro: #1C1C1C;
-      --blanco: #FFFFFF;
-      --gris: #F5F5F5;
-      --gris-oscuro: #333333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Tu Compa de Gym! v2.0 - Cotizador PRO</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins (similar to image typography) and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos de Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Marked.js para renderizar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            /* New color palette from the design image */
+            --primary-pink: #DC218B;
+            --primary-blue: #4AC0FC;
+            --dark-bg: #1A002E; /* A deep purple/dark background */
+            --card-bg: #2B004F; /* Slightly lighter dark for cards */
+            --text-light: #F1F5F9; /* Light text for dark background */
+            --text-muted: #A0A0A0; /* Muted text */
+            --input-bg: #3A006B; /* Input background */
+        }
+        body {
+            font-family: 'Poppins', sans-serif; /* Use Poppins as primary font */
+            padding-bottom: 90px;
+            /* Use Tailwind classes for background and text colors based on dark mode */
+            /* background-color: var(--dark-bg); */ /* Removed fixed background */
+            /* color: var(--text-light); */ /* Removed fixed text color */
+        }
+        @media (min-width: 1024px) { body { padding-bottom: 0; } }
+        
+        .product-list::-webkit-scrollbar { width: 8px; }
+        .product-list::-webkit-scrollbar-track { background: var(--dark-bg); }
+        .product-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
 
-    body {
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      background: var(--gris);
-      color: var(--negro);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+        .banner {
+            height: 200px;
+            /* Background image from GitHub IMG folder */
+            background-image: url('https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/0banner.png'); 
+            background-size: cover;
+            background-position: center;
+        }
+        /* Animación para el modal */
+        .modal-enter { transform: translateY(100%); }
+        .modal-enter-active { transform: translateY(0); transition: transform 0.3s ease-out; }
+        .modal-leave-active { transform: translateY(100%); transition: transform 0.3s ease-in; }
+        
+        /* Animación Fly-to-cart */
+        .fly-to-cart {
+            position: absolute;
+            font-size: 2rem;
+            z-index: 100;
+            transition: all 0.6s ease-in-out;
+        }
+        /* Animación de pulso para el carrito */
+        .cart-pulse {
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        /* Estilos para el contenido del plan de entrenamiento */
+        .prose {
+            color: var(--text-light); /* Light text for prose */
+        }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+            color: var(--text-light);
+        }
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+        }
+        .prose ol {
+            list-style-type: decimal;
+            padding-left: 1.5em;
+        }
+        .prose li {
+            margin-bottom: 0.5em;
+        }
 
-    header {
-      background: var(--violeta);
-      color: var(--blanco);
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
+        /* Estilos para impresión */
+        @media print {
+            body > *:not(#workout-plan-modal):not(#meal-plan-modal) { /* Exclude all modals from hiding */
+                display: none !important;
+            }
+            #workout-plan-modal, #meal-plan-modal {
+                position: static !important;
+                display: block !important;
+                background: none !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                width: auto !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            #workout-plan-modal-content, #meal-plan-modal-content {
+                position: static !important;
+                transform: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+                background: none !important;
+                border-radius: 0 !important;
+                padding: 1rem !important;
+                color: black !important; /* Ensure text is black for printing */
+            }
+            #workout-plan-modal-content h2, #workout-plan-modal-content .prose,
+            #meal-plan-modal-content h2, #meal-plan-modal-content .prose {
+                color: black !important;
+            }
+            #workout-plan-modal-content button, #meal-plan-modal-content button {
+                display: none !important; /* Hide buttons in print */
+            }
+        }
 
-    header img.logo {
-      height: 40px;
-    }
+        /* Toast Notification Styles */
+        #toast-notification {
+            position: fixed;
+            bottom: 90px; /* Above mobile cart bar */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 128, 0, 0.9); /* Green, slightly transparent */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (min-width: 1024px) {
+            #toast-notification {
+                bottom: 20px; /* Adjust for desktop, no mobile cart bar */
+            }
+        }
 
-    header h1 {
-      font-weight: 700;
-      font-size: 1.5rem;
-      margin: 0;
-    }
+        /* Cart Badge Styles */
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444; /* Red */
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
 
-    main {
-      flex-grow: 1;
-      max-width: 900px;
-      margin: 2rem auto;
-      background: var(--blanco);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 1.5rem 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
+        /* Nuevos estilos para asegurar la proporción de las imágenes y el fondo */
+        #product-list {
+            background-color: #f7f7f7; /* Gris muy claro */
+            padding: 1rem; /* Añadido padding para el fondo */
+            border-radius: 8px; /* Opcional: bordes redondeados para el fondo */
+        }
 
-    /* Categorías */
-    label {
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-      display: block;
-    }
+        #product-list .group {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center; /* Centrar elementos */
+            padding: 1rem;
+            border: 1px solid #e5e7eb; /* Borde sutil */
+            border-radius: 0.5rem;
+            background-color: white; /* Fondo blanco para cada tarjeta de producto */
+        }
 
-    select {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 2px solid var(--violeta);
-      background: var(--gris);
-      transition: border-color 0.3s ease;
-      cursor: pointer;
-    }
+        #product-list .group .image-container { /* Nuevo contenedor para la imagen */
+            width: 100%; /* Ocupa todo el ancho disponible */
+            padding-bottom: 100%; /* Truco para hacer el contenedor cuadrado (1:1) */
+            position: relative; /* Necesario para que la imagen absoluta se posicione dentro */
+            overflow: hidden; /* Oculta cualquier parte de la imagen que se salga */
+            margin-bottom: 0.5rem;
+        }
 
-    select:hover, select:focus {
-      border-color: var(--amarillo);
-      outline: none;
-    }
+        #product-list .group .image-container img {
+            position: absolute; /* Posicionamiento absoluto dentro del contenedor */
+            top: 0;
+            left: 0;
+            width: 100%; /* Ocupa todo el ancho del contenedor */
+            height: 100%; /* Ocupa todo el alto del contenedor */
+            object-fit: contain; /* Ajustar la imagen dentro del contenedor sin recortar */
+            object-position: center; /* Centrar la imagen dentro del contenedor */
+        }
 
-    /* Prompts List */
-    .prompts-list {
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid var(--gris-oscuro);
-      border-radius: 8px;
-      padding: 0.5rem;
-      background: var(--gris);
-    }
+        #product-list .group h3 {
+            margin-top: 0.5rem;
+            text-align: center;
+        }
 
-    .prompt-item {
-      padding: 0.5rem 0.6rem;
-      cursor: pointer;
-      border-bottom: 1px solid var(--gris-oscuro);
-      transition: background 0.2s ease;
-    }
-
-    .prompt-item:last-child {
-      border-bottom: none;
-    }
-
-    .prompt-item:hover {
-      background: var(--amarillo);
-      color: var(--negro);
-    }
-
-    /* Chatbot */
-    .chatbot-area {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    textarea {
-      width: 100%;
-      resize: vertical;
-      min-height: 100px;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 2px solid var(--violeta);
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    button.generate-btn {
-      align-self: flex-end;
-      background: var(--amarillo);
-      border: none;
-      color: var(--negro);
-      font-weight: 700;
-      padding: 0.8rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-    }
-
-    button.generate-btn:hover {
-      background: #FFEA70;
-    }
-
-    /* Resultado */
-    .result-area {
-      background: var(--gris);
-      border-radius: 8px;
-      padding: 1rem;
-      min-height: 150px;
-      white-space: pre-wrap;
-      font-size: 1rem;
-      color: var(--negro);
-      border: 2px solid var(--violeta);
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      main {
-        margin: 1rem;
-        padding: 1rem;
-      }
-    }
-  </style>
+        #product-list .group button {
+            margin-top: 1rem;
+        }
+    </style>
 </head>
-<body>
-  <header>
-    <img class="logo" src="https://dummyimage.com/80x40/6a0dad/fff&text=Núcleo" alt="Logo Núcleo Colectivo" />
-    <h1>Núcleobot</h1>
-  </header>
-
-  <main>
-    <div>
-      <label for="category-select">Selecciona Categoría</label>
-      <select id="category-select">
-        <option value="" disabled selected>Elige una categoría...</option>
-        <option value="arte">Arte y Diseño</option>
-        <option value="tecnologia">Tecnología y IA</option>
-        <option value="cultura">Cultura y Comunidad</option>
-        <option value="educacion">Educación y Formación</option>
-        <option value="bienestar">Bienestar y Reflexión</option>
-      </select>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    
+    <div class="banner rounded-b-3xl shadow-lg flex items-center justify-center relative">
+        <div class="absolute inset-0 bg-black opacity-40 rounded-b-3xl"></div>
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white z-10" style="text-shadow: 3px 3px 8px rgba(0,0,0,0.6);">
+            Fitness Pro
+        </h1>
     </div>
 
-    <div class="prompts-list" id="prompts-list">
-      <p style="text-align:center; color: var(--gris-oscuro);">Selecciona una categoría para ver prompts</p>
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="mb-4 text-center">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">¡Tu Compa de Gym!</h1>
+            <p id="main-subtitle" class="text-slate-600 dark:text-slate-400 mt-2">Selecciona productos y servicios para tu rutina de ejercicio</p>
+        </header>
+
+        <!-- Controles Globales -->
+        <div class="sticky top-0 z-30 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm py-4 mb-4">
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+                <!-- Buscador -->
+                <div class="relative w-full md:max-w-xs">
+                    <input type="search" id="search-input" placeholder="Buscar artículos..." class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 pl-10 focus:ring-2 focus:ring-sky-500">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+                <!-- Controles de Idioma, Moneda y Modo Oscuro -->
+                <div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-md">
+                    <select id="language-switcher" class="bg-slate-100 dark:bg-slate-700 border-none rounded-md p-1 font-semibold text-sm focus:ring-2 focus:ring-sky-500"></select>
+                    <select id="currency-switcher" class="bg-slate-100 dark:bg-slate-700 border-none rounded-md p-1 font-semibold text-sm focus:ring-2 focus:ring-sky-500"></select>
+                    <button id="dark-mode-toggle" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="ph ph-sun text-xl text-yellow-500"></i>
+                        <i class="ph ph-moon hidden text-xl text-sky-400"></i>
+                    </button>
+                </div>
+            </div>
+              <!-- Filtros de Categoría -->
+            <div id="category-filters" class="flex gap-2 justify-center mt-4 overflow-x-auto pb-2"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
+            <!-- Columna de Productos -->
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-2xl shadow-lg">
+                    <h2 id="products-title" class="text-xl md:text-2xl font-semibold mb-6 flex items-center"><i class="ph ph-grid-four mr-2"></i></h2>
+                    <div id="product-list" class="grid grid-cols-2 md:grid-cols-3 gap-4 product-list min-h-[50vh]"></div>
+                </div>
+            </div>
+
+            <!-- Columna de Cotización para Escritorio -->
+            <div class="hidden lg:block lg:col-span-1">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg sticky top-28">
+                    <h2 id="quote-title-desktop" class="text-2xl font-semibold mb-6 flex items-center relative">
+                        <i class="ph ph-shopping-cart-simple mr-2"></i>
+                        Tu Plan de Entrenamiento
+                        <span id="cart-count-desktop" class="cart-badge">0</span>
+                    </h2>
+                    <div id="cart-items-desktop" class="space-y-4 mb-6 min-h-[150px] max-h-[40vh] overflow-y-auto"></div>
+                    <div id="cart-totals-desktop"></div>
+                    <div id="cart-buttons-desktop" class="mt-6 space-y-3"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="chatbot-area">
-      <label for="prompt-input">Prompt seleccionado / Edítalo aquí:</label>
-      <textarea id="prompt-input" placeholder="Elige un prompt o escribe el tuyo aquí..."></textarea>
-      <button class="generate-btn" id="generate-btn">Generar texto</button>
+    <!-- Barra de Carrito Fija para Móvil -->
+    <div id="mobile-cart-bar" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-3 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex items-center justify-between">
+        <div>
+            <p id="mobile-total-label" class="text-sm text-slate-500 dark:text-slate-400">Total</p>
+            <p id="mobile-total-amount" class="font-bold text-xl text-slate-800 dark:text-slate-200">$0</p>
+        </div>
+        <button id="view-cart-btn" class="bg-sky-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 disabled:bg-sky-300 dark:disabled:bg-sky-800 disabled:cursor-not-allowed">
+            <i id="mobile-cart-icon" class="ph ph-shopping-cart-simple text-xl relative">
+                <span id="cart-count-mobile" class="cart-badge">0</span>
+            </i>
+            <span id="view-cart-label">Ver Plan</span>
+        </button>
     </div>
 
-    <div class="result-area" id="result-area" aria-live="polite">
-      Aquí aparecerá el resultado...
+    <!-- Modal de Carrito para Móvil -->
+    <div id="mobile-cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40">
+        <div id="modal-content" class="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-900 rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto transition-transform duration-300 ease-in-out modal-enter">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 id="quote-title-mobile" class="text-2xl font-semibold flex items-center"><i class="ph ph-shopping-cart-simple mr-2"></i></h2>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                    <i class="ph ph-x text-3xl"></i>
+                </button>
+            </div>
+            <div id="cart-items-mobile" class="space-y-4 mb-6"></div>
+            <div id="cart-totals-mobile" class="bg-white dark:bg-slate-800 p-4 rounded-xl"></div>
+            <div id="cart-buttons-mobile" class="mt-6 space-y-3"></div>
+        </div>
     </div>
-  </main>
 
-  <script>
-    const prompts = {
-      arte: [
-        "Crea una descripción para una ilustración que represente la transformación social usando colores cálidos.",
-        "Explica paso a paso cómo pintar un paisaje urbano en acrílico.",
-        "Sugiere una serie fotográfica sobre la vida cotidiana en Medellín enfocada en emociones humanas.",
-        "Genera ideas para el diseño del logo de un colectivo artístico que sea moderno y inclusivo."
-      ],
-      tecnologia: [
-        "Escribe un prompt para entrenar un chatbot que ayude a usuarios a crear arte con IA.",
-        "Crea un reto de programación para generar arte visual usando Processing y GPT.",
-        "Recomienda las mejores herramientas IA para generación de música experimental."
-      ],
-      cultura: [
-        "Diseña un esquema para un evento colaborativo de arte y tecnología en espacios públicos.",
-        "Genera ideas para proyectos colectivos que promuevan la inclusión social a través del arte.",
-        "Sugiere roles para un equipo multidisciplinario en un proyecto artístico colaborativo."
-      ],
-      educacion: [
-        "Crea un plan de 4 sesiones para un taller sobre IA aplicada a la creatividad artística.",
-        "Lista recursos gratuitos para aprender a programar chatbots creativos.",
-        "Explica cómo integrar ElevenLabs para generar voz en off en un proyecto audiovisual."
-      ],
-      bienestar: [
-        "Propón un ejercicio de mindfulness para estimular la creatividad diaria.",
-        "Genera preguntas para una autoexploración sobre la relación entre arte e identidad personal.",
-        "Explica el concepto de creatividad consciente y cómo aplicarlo en proyectos artísticos."
-      ]
-    };
+    <!-- Modal de Plan de Entrenamiento -->
+    <div id="workout-plan-modal" class="hidden fixed inset-0 bg-black bg-opacity50 z-40">
+        <div id="workout-plan-modal-content" class="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-900 rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto transition-transform duration-300 ease-in-out modal-enter">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-2xl font-semibold flex items-center"><i class="ph ph-sparkle mr-2"></i><span id="workout-plan-title"></span></h2>
+                <button id="close-workout-plan-modal-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                    <i class="ph ph-x text-3xl"></i>
+                </button>
+            </div>
+            <div id="workout-plan-content" class="prose dark:prose-invert max-w-none">
+                <!-- Contenido del plan de entrenamiento generado por LLM -->
+                <p id="loading-plan" class="text-center text-slate-500 dark:text-slate-400 py-10 hidden">
+                    <i class="ph ph-spinner-gap animate-spin text-4xl"></i><br>
+                    Generando tu plan...
+                </p>
+                <div id="generated-plan-text"></div>
+            </div>
+            <div id="workout-plan-actions" class="mt-6 space-y-2"> <!-- Reduced space-y for smaller buttons -->
+                <button id="save-pdf-btn" class="w-full bg-blue-600 text-white py-2 px-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph ph-file-pdf"></i><span>Guardar PDF 💾</span></button>
+                <button id="print-plan-btn" class="w-full bg-indigo-600 text-white py-2 px-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph ph-printer"></i><span>Imprimir 🖨️</span></button>
+                <button id="share-plan-whatsapp-btn" class="w-full bg-green-500 text-white py-2 px-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph-fill ph-whatsapp-logo"></i><span>Compartir Plan por WhatsApp 💬</span></button>
+            </div>
+        </div>
+    </div>
 
-    const categorySelect = document.getElementById('category-select');
-    const promptsList = document.getElementById('prompts-list');
-    const promptInput = document.getElementById('prompt-input');
-    const generateBtn = document.getElementById('generate-btn');
-    const resultArea = document.getElementById('result-area');
+    <!-- Nuevo Modal de Plan de Comidas -->
+    <div id="meal-plan-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40">
+        <div id="meal-plan-modal-content" class="absolute bottom-0 left-0 right-0 bg-slate-100 dark:bg-slate-900 rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto transition-transform duration-300 ease-in-out modal-enter">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-2xl font-semibold flex items-center"><i class="ph ph-bowl-food mr-2"></i><span id="meal-plan-title"></span></h2>
+                <button id="close-meal-plan-modal-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                    <i class="ph ph-x text-3xl"></i>
+                </button>
+            </div>
+            <div id="meal-plan-content" class="prose dark:prose-invert max-w-none">
+                <p id="loading-meal-plan" class="text-center text-slate-500 dark:text-slate-400 py-10 hidden">
+                    <i class="ph ph-spinner-gap animate-spin text-4xl"></i><br>
+                    Generando tu plan de comidas...
+                </p>
+                <div id="generated-meal-plan-text"></div>
+            </div>
+            <div id="meal-plan-actions" class="mt-6 space-y-2">
+                <button id="save-meal-pdf-btn" class="w-full bg-blue-600 text-white py-2 px-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph ph-file-pdf"></i><span>Guardar PDF 💾</span></button>
+                <button id="print-meal-plan-btn" class="w-full bg-indigo-600 text-white py-2 px-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph ph-printer"></i><span>Imprimir 🖨️</span></button>
+                <button id="share-meal-plan-whatsapp-btn" class="w-full bg-green-500 text-white py-2 px-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph-fill ph-whatsapp-logo"></i><span>Compartir Plan de Comidas por WhatsApp 💬</span></button>
+            </div>
+        </div>
+    </div>
 
-    // Carga los prompts según categoría seleccionada
-    categorySelect.addEventListener('change', () => {
-      const category = categorySelect.value;
-      promptInput.value = '';
-      resultArea.textContent = 'Aquí aparecerá el resultado...';
+    <!-- Nuevo Modal de Preguntas y Respuestas del Entrenador -->
+    <div id="coach-qa-modal" class="hidden fixed inset-0 bg-black bg-opacity-0 z-40"> 
+        <div id="coach-qa-modal-content" class="absolute bottom-0 right-0 bg-slate-100 dark:bg-slate-900 rounded-t-2xl p-4 flex flex-col transition-transform duration-300 ease-in-out h-full max-h-[600px] w-full max-w-[400px] modal-enter">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+                <h2 class="text-2xl font-semibold flex items-center"><i class="ph ph-robot mr-2"></i><span id="coach-qa-title"></span></h2>
+                <button id="close-coach-qa-modal-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                    <i class="ph ph-x text-3xl"></i>
+                </button>
+            </div>
+            <div id="chat-messages-container" class="flex-grow overflow-y-auto pr-2 mb-4">
+                <!-- Chat messages will be appended here -->
+                <p id="loading-coach-response" class="text-center text-slate-500 dark:text-slate-400 py-10 hidden">
+                    <i class="ph ph-spinner-gap animate-spin text-4xl"></i><br>
+                    Generando respuesta...
+                </p>
+            </div>
+            <div class="flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <textarea id="coach-question-input" class="flex-grow bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-sky-500 min-h-[50px] max-h-[150px] resize-y" placeholder="Escribe tu pregunta aquí..."></textarea>
+                    <button id="ask-question-btn" class="bg-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center flex-shrink-0">
+                        <i class="ph ph-paper-plane-tilt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      if (!category || !prompts[category]) {
-        promptsList.innerHTML = '<p style="text-align:center; color: var(--gris-oscuro);">Selecciona una categoría para ver prompts</p>';
-        return;
-      }
+    <!-- Botón flotante para abrir el chatbot -->
+    <button id="chatbot-toggle-btn">
+        <i class="ph ph-chat-text"></i>
+    </button>
 
-      promptsList.innerHTML = '';
-      prompts[category].forEach(p => {
-        const pItem = document.createElement('div');
-        pItem.className = 'prompt-item';
-        pItem.textContent = p;
-        pItem.tabIndex = 0;
-        pItem.addEventListener('click', () => {
-          promptInput.value = p;
-          promptInput.focus();
+    <!-- Toast Notification Element -->
+    <div id="toast-notification" class="flex items-center">
+        <i class="ph ph-check-circle text-xl"></i>
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // Declaración de 'dom' y 'TRANSLATIONS' en un ámbito más amplio para asegurar su disponibilidad
+        const dom = {}; 
+        const TRANSLATIONS = {
+            es: {
+                mainTitle: "¡Tu Compa de Gym!", 
+                mainSubtitle: "Selecciona productos y servicios para tu rutina de ejercicio", 
+                productsTitle: "Catálogo de Artículos", 
+                quoteTitle: "Tu Plan de Entrenamiento", 
+                addToCart: "Añadir", 
+                addedToCart: "Añadido", 
+                cartEmpty: "Tu plan está vacío", 
+                subtotal: "Subtotal:", 
+                iva: "IVA (19%):", 
+                total: "Total:", 
+                clearQuote: "Reiniciar Plan", 
+                sendWhatsApp: "Compartir Plan", 
+                whatsappMessageTitle: "*¡Hola! Te envío mi plan desde Fitness Pro:*", 
+                viewCart: "Ver Plan", 
+                noProductsFound: "No se encontraron artículos.",
+                generatePlan: "Generar Plan ✨",
+                workoutPlanTitle: "Tu Plan de Entrenamiento Personalizado",
+                planGenerationError: "No se pudo generar el plan de entrenamiento. Inténtalo de nuevo más tarde.",
+                generateMealPlan: "Generar Plan de Comidas ✨",
+                mealPlanTitle: "Tu Plan de Comidas Personalizado",
+                mealPlanGenerationError: "No se pudo generar el plan de comidas. Inténtalo de nuevo más tarde.",
+                askCoach: "Pregúntale al GymBroT ✨", // Re-added
+                gymBroTTitle: "GymBroT: Entrenador Experto en Nutrición y Fitness", // Re-added
+                coachQAGenerationError: "No se pudo generar la respuesta. Inténtalo de nuevo más tarde.", // Re-added
+                gymBroTWelcome: `¡Hey! 👋 ¡Qué onda, máquina! 🔥\n\n¡Bienvenido/a! Soy tu **GymBroT** personal, listo para ser tu copiloto en este viaje fitness. 💪🚀\n\nEstoy aquí para ayudarte con todo lo relacionado al gimnasio:\n\n* **Nutrición** 🍎🥦\n* **Rutinas de ejercicio** 🏋️‍♂️📈\n* **Suplementos** 💊🤩\n* **Tips** de bienestar y mindset positivo ✨🧘‍♀️\n\n¡Pregúntame lo que sea que necesites para triturar tus metas. ¡No te quedes con la duda! \n\n¡Vamos a poner esos músculos a trabajar y alcanzar tu mejor versión! 💯🔥\n\n¡Dispara tu pregunta cuando quieras! 🎯`, // Re-added
+                removedFromCart: "removido del carrito.",
+                cartCleared: "Carrito vaciado."
+            },
+            en: {
+                mainTitle: "Your Gym Buddy!", 
+                mainSubtitle: "Select products and services for your workout routine", 
+                productsTitle: "Item Catalog", 
+                quoteTitle: "Your Workout Plan", 
+                addToCart: "Add", 
+                addedToCart: "Added", 
+                cartEmpty: "Your plan is empty", 
+                subtotal: "Subtotal:", 
+                iva: "VAT (19%):", 
+                total: "Total:", 
+                clearQuote: "Reset Plan", 
+                sendWhatsApp: "Share Plan", 
+                whatsappMessageTitle: "*Hi! Here is my plan from Fitness Pro:*", 
+                viewCart: "View Plan", 
+                noProductsFound: "No items found.",
+                generatePlan: "Generate Plan ✨",
+                workoutPlanTitle: "Your Personalized Workout Plan",
+                planGenerationError: "Could not generate workout plan. Please try again later.",
+                generateMealPlan: "Generate Meal Plan ✨",
+                mealPlanTitle: "Your Personalized Meal Plan",
+                mealPlanGenerationError: "Could not generate meal plan. Please try again later.",
+                askCoach: "Ask GymBroT ✨", // Re-added
+                gymBroTTitle: "GymBroT: Nutrition & Fitness Expert Coach", // Re-added
+                coachQAGenerationError: "Could not generate response. Please try again later.", // Re-added
+                gymBroTWelcome: `Hey! 👋 What's up, machine! 🔥\n\nWelcome! I'm your personal **GymBroT**, ready to be your co-pilot on this fitness journey. 💪🚀\n\nI'm here to help you with everything related to the gym:\n\n* **Nutrition** 🍎🥦\n* **Workout routines** 🏋️‍♂️📈\n* **Supplements** 💊🤩\n* **Tips** for well-being and positive mindset ✨🧘‍♀️\n\nAsk me anything you need to crush your goals. Don't hold back! \n\nLet's get those muscles working and reach your best version! 💯🔥\n\nShoot your question whenever you want! 🎯`, // Re-added
+                removedFromCart: "removed from cart.",
+                cartCleared: "Cart cleared."
+            }
+        };
+
+        // Se asegura de que el DOM esté completamente cargado antes de inicializar la app.
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Definir traducciones y elementos del DOM ANTES de llamar a init()
+            // Esto asegura que 'dom' esté poblado antes de que cualquier otra lógica intente acceder a sus propiedades.
+            defineDomAndTranslations(); 
+            init(); 
         });
-        pItem.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            promptInput.value = p;
-            promptInput.focus();
-          }
-        });
-        promptsList.appendChild(pItem);
-      });
-    });
 
-    // Simulación de generación de texto (aquí puedes integrar IA real)
-    generateBtn.addEventListener('click', () => {
-      const prompt = promptInput.value.trim();
-      if (!prompt) {
-        resultArea.textContent = 'Por favor, ingresa un prompt para generar texto.';
-        return;
-      }
+        // --- 1. DATOS Y CONFIGURACIÓN ---
+        const ALL_PRODUCTS = [
+            // Suplementos
+            { id: 1, name: "Proteína Whey (2kg)", price: 180000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_01%20PROTEIN.png", category: "supplements" },
+            { id: 2, name: "Creatina Monohidratada (500g)", price: 90000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_02%20creatina.png", category: "supplements" },
+            { id: 3, name: "BCAA's (30 servicios)", price: 75000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_03%20BBCAA.png", category: "supplements" },
+            { id: 4, name: "Pre-entreno (30 servicios)", price: 85000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_04%20pre%20workout.png", category: "supplements" },
+            { id: 5, name: "Multivitamínico (60 cápsulas)", price: 60000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_05%20multivit.png", category: "supplements" },
+            { id: 6, name: "Caseína (1kg)", price: 100000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_06%20casein.png", category: "supplements" },
+            // Equipamiento
+            { id: 7, name: "Mancuernas Ajustables (Par)", price: 350000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_07%20mancuerna.png", category: "equipment" },
+            { id: 8, name: "Bandas de Resistencia (Set)", price: 45000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_08%20bandas.png", category: "equipment" },
+            { id: 9, name: "Cuerda para Saltar", price: 20000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_09%20cuerda.png", category: "equipment" },
+            { id: 10, name: "Rodillo de Espuma", price: 30000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_10%20rodillo.png", category: "equipment" },
+            { id: 11, name: "Guantes de Levantamiento", price: 35000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_11%20guantes.png", category: "equipment" },
+            { id: 12, name: "Barra de Dominadas", price: 120000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_12%20barra.png", category: "equipment" },
+            // Membresías
+            { id: 13, name: "Membresía Mensual (Acceso Total)", price: 120000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_13%20menb%20mensual.png", category: "memberships" },
+            { id: 14, name: "Membresía Trimestral (Acceso Total)", price: 300000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_14%20men%20trim.png", category: "memberships" },
+            { id: 15, name: "Clases de Yoga (Paquete 8)", price: 90000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_15%20clases%20yoga.png", category: "memberships" },
+            { id: 16, name: "Entrenamiento Personal (Sesión)", price: 70000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_16%20entrenamiento%20pers.png", category: "memberships" },
+            { id: 17, name: "Camiseta Deportiva (Hombre)", price: 50000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_17%20camiseta%20deportiva.png", category: "apparel" },
+            { id: 18, name: "Leggings Deportivos (Mujer)", price: 65000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_18%20Leggings%20Deportivos.png", category: "apparel" },
+            { id: 19, name: "Zapatillas de Entrenamiento", price: 250000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_19%20Zapatillas%20de%20Entrenamiento.png", category: "apparel" },
+            { id: 20, name: "Sudadera con Capucha", price: 80000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_20%20Sudadera%20con%20Capucha.png", category: "apparel" },
+            // Accesorios
+            { id: 21, name: "Botella de Agua (1L)", price: 25000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_21%20Botella%20de%20Agua.png", category: "accessories" },
+            { id: 22, name: "Toalla de Gimnasio", price: 15000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_22%20Toalla%20de%20Gimnasio.png", category: "accessories" },
+            { id: 23, name: "Cinturón de Levantamiento", price: 95000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_23%20cinturon.png", category: "accessories" },
+            { id: 24, name: "Auriculares Inalámbricos", price: 150000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/P_24%20Auriculares.png", category: "accessories" },
+            { id: 25, name: "Shaker para Proteína", price: 30000, imageUrl: "https://raw.githubusercontent.com/NucleoColectivo/GYM/main/IMG/25%20Shaker.png", category: "accessories" },
+        ];
 
-      // Simulación: genera texto natural + esquema simple
-      const textoNatural = `Texto generado para el prompt:\n"${prompt}"\n\nEste es un ejemplo de texto fluido que explica o desarrolla el tema con lenguaje cercano y natural, incluyendo ejemplos y recomendaciones relevantes para Núcleo Colectivo.`;
+        const CATEGORIES = {
+            es: { 
+                all: "Todos", 
+                supplements: "Suplementos", 
+                equipment: "Equipamiento", 
+                memberships: "Membresías y Clases", 
+                apparel: "Ropa Deportiva", 
+                accessories: "Accesorios" 
+            },
+            en: { 
+                all: "All", 
+                supplements: "Supplements", 
+                equipment: "Equipment", 
+                memberships: "Memberships & Classes", 
+                apparel: "Sportswear", 
+                accessories: "Accessories" 
+            }
+        };
 
-      const esquema = `\n\nEsquema / Mapa Mental:\n- Tema central: ${prompt.split(' ')[0]}\n- Ramas:\n  - Idea principal\n  - Detalles\n  - Aplicaciones\n  - Reflexión`;
+        let exchangeRates = { COP: 1, USD: 0.00025, EUR: 0.00023 };
 
-      resultArea.textContent = textoNatural + esquema;
-    });
-  </script>
+        // --- ESTADO DE LA APLICACIÓN ---
+        let state = {
+            cart: [],
+            lang: 'es',
+            currency: 'COP',
+            darkMode: true, // Starts in dark mode as per HTML class
+            searchQuery: '',
+            activeCategory: 'all',
+            chatHistory: [] // Store chat history (kept for now, but not used by chatbot features)
+        };
+
+        // --- SIMULACIÓN DE API ---
+        const fetchExchangeRates = async () => {
+            // En una app real, aquí se haría un fetch a una API.
+            // Por ahora, simulamos una pequeña demora y devolvemos valores.
+            console.log("Fetching exchange rates...");
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // Simulamos una pequeña variación para mostrar que funciona
+            const newRates = { COP: 1, USD: 0.00025 + Math.random() * 0.00001, EUR: 0.00023 + Math.random() * 0.00001 };
+            console.log("Rates updated:", newRates);
+            return newRates;
+        };
+
+        // --- LÓGICA DE INICIALIZACIÓN ---
+        const init = async () => {
+            // Cargar estado guardado
+            loadState();
+            
+            // Cargar tasas de cambio
+            try {
+                exchangeRates = await fetchExchangeRates();
+            } catch (error) {
+                console.error("Failed to fetch exchange rates, using default.", error);
+            }
+
+            // Configurar listeners de eventos
+            setupEventListeners();
+            
+            // Renderizar todo por primera vez
+            updateUI();
+        };
+
+        // --- LÓGICA DE ESTADO (localStorage) ---
+        const saveState = () => {
+            const stateToSave = {
+                cart: state.cart,
+                lang: state.lang,
+                currency: state.currency,
+                darkMode: state.darkMode,
+                chatHistory: state.chatHistory // Save chat history
+            };
+            localStorage.setItem('gymBuddyState', JSON.stringify(stateToSave)); // Cambiado el nombre del localStorage key
+        };
+        
+        const loadState = () => {
+            const savedState = JSON.parse(localStorage.getItem('gymBuddyState')); // Cambiado el nombre del localStorage key
+            if (savedState) {
+                state = { ...state, ...savedState };
+            }
+            // Aplicar modo oscuro al inicio
+            if (state.darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            // Asegurarse de que los selectores de idioma y moneda estén disponibles antes de asignarles valor
+            if (dom.langSwitcher) dom.langSwitcher.value = state.lang;
+            if (dom.currencySwitcher) dom.currencySwitcher.value = state.currency;
+        };
+
+        // --- LÓGICA DE RENDERIZADO ---
+        const updateUI = () => {
+            updateTexts();
+            renderProducts();
+            renderCart();
+            updateDarkModeToggle();
+        };
+
+        const updateTexts = () => {
+            const t = TRANSLATIONS[state.lang];
+            Object.keys(t).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    // Evita sobrescribir el contenido de los íconos
+                    if (element.children.length > 0 && element.children[0].tagName === 'I') {
+                       const icon = element.children[0];
+                       element.innerHTML = ''; // Clear existing content but preserve the icon
+                       element.appendChild(icon);
+                       element.append(` ${t[key]}`);
+                    } else {
+                       element.textContent = t[key];
+                    }
+                }
+            });
+            renderCategoryFilters();
+        };
+        
+        const renderCategoryFilters = () => {
+            const t = CATEGORIES[state.lang];
+            if (!dom.categoryFilters) {
+                console.error("dom.categoryFilters is null or undefined. Cannot render category filters.");
+                return;
+            }
+            dom.categoryFilters.innerHTML = Object.entries(t).map(([key, value]) => `
+                <button data-category="${key}" class="category-btn whitespace-nowrap text-sm font-semibold px-4 py-2 rounded-full transition-colors ${state.activeCategory === key ? 'bg-sky-600 text-white' : 'bg-white dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'}">
+                    ${value}
+                </button>
+            `).join('');
+        };
+
+        const renderProducts = () => {
+            const t = TRANSLATIONS[state.lang];
+            const filteredProducts = ALL_PRODUCTS.filter(p => {
+                const matchesCategory = state.activeCategory === 'all' || p.category === state.activeCategory;
+                const matchesSearch = p.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            if (!dom.productList) {
+                console.error("dom.productList is null or undefined. Cannot render products.");
+                return;
+            }
+
+            dom.productList.innerHTML = filteredProducts.map(product => {
+                const displayPrice = product.price * exchangeRates[state.currency];
+                const isInCart = state.cart.some(item => item.id === product.id);
+                return `
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col justify-between transition-shadow hover:shadow-md group">
+                        <div class="image-container"> <!-- Contenedor para la imagen con proporción 1:1 -->
+                            <img src="${product.imageUrl}" alt="${product.name}" class="rounded-md shadow-sm transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null;this.src='https://placehold.co/150x96/e2e8f0/64748b?text=No+Image';">
+                        </div>
+                        <h3 class="font-semibold text-slate-800 dark:text-slate-200 text-center text-sm mt-2">${product.name}</h3>
+                        <p class="text-slate-600 dark:text-slate-300 font-bold text-base mt-1">${formatCurrency(displayPrice)}</p>
+                        <button data-id="${product.id}" class="add-to-cart-btn mt-3 w-full py-2 px-1 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-1 ${isInCart ? 'bg-green-500 text-white' : 'bg-sky-600 text-white hover:bg-sky-700'}">
+                            <i class="ph ${isInCart ? 'ph-check-circle' : 'ph-plus-circle'}"></i>
+                            <span data-id="${product.id}">${isInCart ? t.addedToCart : t.addToCart}</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            if (filteredProducts.length === 0) {
+                dom.productList.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10">${t.noProductsFound}</p>`;
+            }
+        };
+
+        const renderCart = () => {
+            const t = TRANSLATIONS[state.lang];
+            let subtotal = 0;
+            let cartItemsHTML = '';
+            let itemCount = 0;
+
+            if (state.cart.length === 0) {
+                cartItemsHTML = `<div class="text-center text-slate-500 dark:text-slate-400 py-10"><i class="ph ph-shopping-cart text-5xl"></i><p class="mt-2 font-medium">${t.cartEmpty}</p></div>`;
+            } else {
+                cartItemsHTML = state.cart.map(item => {
+                    const product = ALL_PRODUCTS.find(p => p.id === item.id);
+                    if (!product) { // Defensive check
+                        console.warn(`Product with ID ${item.id} not found in ALL_PRODUCTS. Skipping item.`);
+                        return ''; 
+                    }
+                    const itemPrice = product.price * exchangeRates[state.currency];
+                    subtotal += itemPrice * item.quantity;
+                    itemCount += item.quantity;
+                    return `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex-shrink-0 w-12 h-12">
+                                <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-full object-cover rounded-md" onerror="this.onerror=null;this.src='https://placehold.co/48x48/e2e8f0/64748b?text=';">
+                            </div>
+                            <div class="flex-grow"><p class="font-semibold text-sm">${product.name}</p><p class="text-xs text-slate-500 dark:text-slate-400">${formatCurrency(itemPrice)}</p></div>
+                            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-full p-1">
+                                <button data-id="${item.id}" class="decrease-quantity-btn w-6 h-6 rounded-full bg-white dark:bg-slate-600 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500 transition">-</button>
+                                <span class="font-bold w-5 text-center text-sm">${item.quantity}</span>
+                                <button data-id="${item.id}" class="increase-quantity-btn w-6 h-6 rounded-full bg-white dark:bg-slate-600 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500 transition">+</button>
+                            </div>
+                            <button data-id="${item.id}" class="remove-item-btn text-red-500 hover:text-red-700 transition"><i class="ph ph-x-circle text-xl"></i></button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Añadir verificaciones antes de asignar innerHTML
+            if (dom.cartItemsDesktop) {
+                dom.cartItemsDesktop.innerHTML = cartItemsHTML;
+            } else {
+                console.error("Error: dom.cartItemsDesktop es null o undefined. No se puede actualizar su innerHTML.");
+            }
+            
+            if (dom.cartItemsMobile) {
+                dom.cartItemsMobile.innerHTML = cartItemsHTML;
+            } else {
+                console.error("Error: dom.cartItemsMobile es null o undefined. No se puede actualizar su innerHTML.");
+            }
+
+            const iva = subtotal * 0.19;
+            const total = subtotal + iva;
+
+            const totalsHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between font-medium text-slate-600 dark:text-slate-300 text-sm"><span>${t.subtotal}</span><span>${formatCurrency(subtotal)}</span></div>
+                    <div class="flex justify-between font-medium text-slate-600 dark:text-slate-300 text-sm"><span>${t.iva}</span><span>${formatCurrency(iva)}</span></div>
+                    <div class="flex justify-between font-bold text-lg text-slate-900 dark:text-white mt-2 border-t border-slate-200 dark:border-slate-700 pt-2"><span>${t.total}</span><span>${formatCurrency(total)}</span></div>
+                </div>`;
+            
+            if (dom.cartTotalsDesktop) {
+                dom.cartTotalsDesktop.innerHTML = totalsHTML;
+            } else {
+                console.error("Error: dom.cartTotalsDesktop es null o undefined. No se puede actualizar su innerHTML.");
+            }
+
+            if (dom.cartTotalsMobile) { 
+                dom.cartTotalsMobile.innerHTML = totalsHTML;
+            } else {
+                console.error("Error: dom.cartTotalsMobile es null o undefined. No se puede actualizar su innerHTML.");
+            }
+            
+            const hasItems = state.cart.length > 0;
+            const buttonsHTML = `
+                <button id="generate-plan-btn" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 disabled:bg-purple-300 dark:disabled:bg-purple-800 disabled:cursor-not-allowed" ${!hasItems ? 'disabled' : ''}><i class="ph ph-sparkle"></i><span>${t.generatePlan}</span></button>
+                <button id="generate-meal-plan-btn" class="w-full bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition-colors flex items-center justify-center gap-2 disabled:bg-yellow-300 dark:disabled:bg-yellow-800 disabled:cursor-not-allowed" ${!hasItems ? 'disabled' : ''}><i class="ph ph-bowl-food"></i><span>${t.generateMealPlan}</span></button>
+                <button id="whatsapp-btn" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 disabled:bg-green-300 dark:disabled:bg-green-800 disabled:cursor-not-allowed" ${!hasItems ? 'disabled' : ''}><i class="ph-fill ph-whatsapp-logo"></i><span>${t.sendWhatsApp}</span></button>
+                <button id="clear-cart-btn" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:bg-red-300 dark:disabled:bg-red-800 disabled:cursor-not-allowed" ${!hasItems ? 'disabled' : ''}><i class="ph ph-trash"></i><span>${t.clearQuote}</span></button>`;
+            
+            if (dom.cartButtonsDesktop) {
+                dom.cartButtonsDesktop.innerHTML = buttonsHTML;
+            } else {
+                console.error("Error: dom.cartButtonsDesktop es null o undefined. No se puede actualizar su innerHTML.");
+            }
+
+            if (dom.cartButtonsMobile) {
+                dom.cartButtonsMobile.innerHTML = buttonsHTML;
+            } else {
+                console.error("Error: dom.cartButtonsMobile es null o undefined. No se puede actualizar su innerHTML.");
+            }
+            
+            if (dom.mobileTotalAmount) {
+                dom.mobileTotalAmount.textContent = formatCurrency(total);
+            } else {
+                console.error("Error: dom.mobileTotalAmount es null o undefined. No se puede actualizar su textContent.");
+            }
+
+            if (dom.viewCartBtn) {
+                dom.viewCartBtn.disabled = !hasItems;
+            } else {
+                console.error("Error: dom.viewCartBtn es null o undefined. No se puede actualizar su propiedad disabled.");
+            }
+        };
+
+        const updateDarkModeToggle = () => {
+            // Update the icon based on the current dark mode state
+            const sunIcon = dom.darkModeToggle ? dom.darkModeToggle.querySelector('.ph-sun') : null;
+            const moonIcon = dom.darkModeToggle ? dom.darkModeToggle.querySelector('.ph-moon') : null;
+            
+            if (sunIcon && moonIcon) {
+                if (state.darkMode) {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                } else {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                }
+            } else {
+                console.warn("Dark mode toggle icons not found.");
+            }
+        };
+        
+        // --- LÓGICA DE INTERACCIÓN ---
+        const handleCartAction = (action, productId) => {
+            const t = TRANSLATIONS[state.lang]; // Get translations here
+            const itemIndex = state.cart.findIndex(item => item.id === productId);
+            let product = ALL_PRODUCTS.find(p => p.id === productId); // Corrected: Use productId directly
+
+            if (!product) {
+                console.error(`Product with ID ${productId} not found.`);
+                return; // Exit if product is not found to prevent further errors
+            }
+
+            switch (action) {
+                case 'add':
+                    if (itemIndex > -1) { // Item already in cart
+                        state.cart[itemIndex].quantity++;
+                    } else { // New item
+                        state.cart.push({ id: productId, quantity: 1 });
+                    }
+                    showToast(`${product.name} ${t.addedToCart}`); // Show toast
+                    break;
+                case 'increase': 
+                    if (itemIndex > -1) {
+                        state.cart[itemIndex].quantity++; 
+                        showToast(`${product.name} +1`);
+                    }
+                    break;
+                case 'decrease':
+                    if (itemIndex > -1 && state.cart[itemIndex].quantity > 1) {
+                        state.cart[itemIndex].quantity--;
+                        showToast(`${product.name} -1`);
+                    }
+                    else if (itemIndex > -1) { // Quantity is 1, remove item
+                        state.cart.splice(itemIndex, 1);
+                        showToast(`${product.name} ${t.removedFromCart}`);
+                    }
+                    break;
+                case 'remove': 
+                    if (itemIndex > -1) {
+                        state.cart.splice(itemIndex, 1);
+                        showToast(`${product.name} ${t.removedFromCart}`);
+                    }
+                    break;
+                case 'clear': 
+                    state.cart = []; 
+                    showToast(t.cartCleared);
+                    break;
+            }
+            saveState();
+            renderCart();
+            renderProducts(); // Re-render para actualizar estado de botones
+        };
+
+        const handleFlyToCartAnimation = (button) => {
+            // Find the image element, not the emoji icon
+            const productImgElement = button.parentElement.querySelector('.image-container img'); // Seleccionar la imagen dentro del nuevo contenedor
+            if (!productImgElement) return; // Safeguard if image isn't found
+
+            const productImgClone = productImgElement.cloneNode(true);
+            productImgClone.classList.add('fly-to-cart');
+            document.body.appendChild(productImgClone);
+
+            const startRect = button.getBoundingClientRect();
+            
+            let endTarget = null;
+            const isDesktop = window.innerWidth >= 1024;
+
+            // Correctly target the icon element within the h2
+            if (isDesktop) {
+                endTarget = document.querySelector('#quote-title-desktop i');
+            } else {
+                endTarget = dom.mobileCartIcon;
+            }
+
+            if (!endTarget) {
+                console.error("Cart icon not found for animation.");
+                productImgClone.remove();
+                return;
+            }
+            
+            const endRect = endTarget.getBoundingClientRect();
+            
+            productImgClone.style.left = `${endRect.left + endRect.width / 2}px`;
+            productImgClone.style.top = `${endRect.top + endRect.height / 2}px`;
+            productImgClone.style.transform = 'scale(0.3)';
+            productImgClone.style.opacity = '0';
+
+            // Initial position for the animation
+            productImgClone.style.left = `${startRect.left + startRect.width / 2}px`;
+            productImgClone.style.top = `${startRect.top + startRect.height / 2}px`;
+
+
+            requestAnimationFrame(() => {
+                productImgClone.style.left = `${endRect.left + endRect.width / 2}px`;
+                productImgClone.style.top = `${endRect.top + endRect.height / 2}px`;
+                productImgClone.style.transform = 'scale(0.3)';
+                productImgClone.style.opacity = '0';
+            });
+
+            setTimeout(() => {
+                productImgClone.remove();
+                
+                const cartIconDesktop = document.querySelector('#quote-title-desktop i');
+                const cartIconMobile = dom.mobileCartIcon;
+
+                if (isDesktop && cartIconDesktop) {
+                    cartIconDesktop.parentElement.classList.add('cart-pulse');
+                } else if (!isDesktop && cartIconMobile) {
+                    cartIconMobile.classList.add('cart-pulse');
+                }
+                
+                setTimeout(() => {
+                    if (isDesktop && cartIconDesktop) cartIconDesktop.parentElement.classList.remove('cart-pulse');
+                    if (!isDesktop && cartIconMobile) cartIconMobile.classList.remove('cart-pulse');
+                }, 500);
+            }, 600);
+        };
+
+        let toggleModal = (show) => { // Existing cart modal toggle
+            if (!dom.mobileCartModal || !dom.modalContent) {
+                console.error("Mobile cart modal elements not found.");
+                return;
+            }
+            if (show) {
+                dom.mobileCartModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    dom.modalContent.classList.remove('modal-enter');
+                    dom.modalContent.classList.add('modal-enter-active');
+                });
+            } else {
+                dom.modalContent.classList.remove('modal-enter-active');
+                dom.modalContent.classList.add('modal-leave-active');
+                setTimeout(() => {
+                    dom.mobileCartModal.classList.add('hidden');
+                    dom.modalContent.classList.remove('modal-leave-active');
+                    dom.modalContent.classList.add('modal-enter');
+                }, 300);
+            }
+        };
+        
+        // New function for workout plan modal
+        let toggleWorkoutPlanModal = (show) => {
+            if (!dom.workoutPlanModal || !dom.workoutPlanModalContent) {
+                console.error("Workout plan modal elements not found.");
+                return;
+            }
+            if (show) {
+                dom.workoutPlanModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    dom.workoutPlanModalContent.classList.remove('modal-enter');
+                    dom.workoutPlanModalContent.classList.add('modal-enter-active');
+                });
+            } else {
+                dom.workoutPlanModalContent.classList.remove('modal-enter-active');
+                dom.workoutPlanModalContent.classList.add('modal-leave-active');
+                setTimeout(() => {
+                    dom.workoutPlanModal.classList.add('hidden');
+                    dom.workoutPlanModalContent.classList.remove('modal-leave-active');
+                    dom.workoutPlanModalContent.classList.add('modal-enter');
+                }, 300);
+            }
+        };
+
+        // New function for meal plan modal
+        let toggleMealPlanModal = (show) => {
+            if (!dom.mealPlanModal || !dom.mealPlanModalContent) {
+                console.error("Meal plan modal elements not found.");
+                return;
+            }
+            if (show) {
+                dom.mealPlanModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    dom.mealPlanModalContent.classList.remove('modal-enter');
+                    dom.mealPlanModalContent.classList.add('modal-enter-active');
+                });
+            } else {
+                dom.mealPlanModalContent.classList.remove('modal-enter-active');
+                dom.mealPlanModalContent.classList.add('modal-leave-active');
+                setTimeout(() => {
+                    dom.mealPlanModal.classList.add('hidden');
+                    dom.mealPlanModalContent.classList.remove('modal-leave-active');
+                    dom.mealPlanModalContent.classList.add('modal-enter');
+                }, 300);
+            }
+        };
+
+        // New function for coach Q&A modal
+        let toggleCoachQAModal = (show) => {
+            if (!dom.coachQAModal || !dom.coachQAModalContent) {
+                console.error("Coach Q&A modal elements not found.");
+                return;
+            }
+            if (show) {
+                dom.coachQAModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    dom.coachQAModalContent.classList.remove('modal-enter');
+                    dom.coachQAModalContent.classList.add('modal-enter-active');
+                });
+            } else {
+                dom.coachQAModalContent.classList.remove('modal-enter-active');
+                dom.coachQAModalContent.classList.add('modal-leave-active');
+                setTimeout(() => {
+                    dom.coachQAModal.classList.add('hidden');
+                    dom.coachQAModalContent.classList.remove('modal-leave-active');
+                    dom.coachQAModalContent.classList.add('modal-enter'); // Reset for next open
+                }, 300);
+            }
+        };
+
+
+        let formatCurrency = (amount) => {
+            const options = { style: 'currency', currency: state.currency, minimumFractionDigits: state.currency === 'COP' ? 0 : 2, maximumFractionDigits: state.currency === 'COP' ? 0 : 2 };
+            return new Intl.NumberFormat(state.lang === 'es' ? 'es-CO' : 'en-US', options).format(amount);
+        };
+        
+        let generateWhatsAppMessage = () => {
+            const t = TRANSLATIONS[state.lang];
+            let message = `${t.whatsappMessageTitle}\n\n`;
+            let subtotal = 0;
+            state.cart.forEach(item => {
+                const product = ALL_PRODUCTS.find(p => p.id === item.id);
+                if (!product) return; // Skip if product not found
+                const itemPrice = product.price * exchangeRates[state.currency];
+                subtotal += itemPrice * item.quantity;
+                message += `*${product.name}*\n  ${item.quantity} x ${formatCurrency(itemPrice)}\n`;
+            });
+            const iva = subtotal * 0.19;
+            const total = subtotal + iva;
+            message += `\n-----------------------\n*${t.subtotal}* ${formatCurrency(subtotal)}\n*${t.iva}* ${formatCurrency(iva)}\n*${t.total}* ${formatCurrency(total)}\n`;
+            return encodeURIComponent(message);
+        };
+
+        // Function to generate workout plan using Gemini API
+        const generateWorkoutPlan = async () => {
+            const t = TRANSLATIONS[state.lang];
+            toggleWorkoutPlanModal(true); // Show the workout plan modal
+
+            if (dom.loadingPlan) dom.loadingPlan.classList.remove('hidden');
+            if (dom.generatedPlanText) dom.generatedPlanText.innerHTML = ''; // Clear previous content
+            if (dom.workoutPlanTitle) dom.workoutPlanTitle.textContent = t.workoutPlanTitle; // Set title immediately
+
+            const selectedItems = state.cart.map(item => {
+                const product = ALL_PRODUCTS.find(p => p.id === item.id);
+                return `${product ? product.name : 'Artículo desconocido'} (Cantidad: ${item.quantity})`;
+            }).join(', ');
+
+            // Enhanced prompt for more infographic/visual output with emojis
+            const prompt = `Genera un plan de entrenamiento personalizado, infográfico y visualmente atractivo con emojis, basado en los siguientes artículos seleccionados de un gimnasio: ${selectedItems}. El plan debe ser conciso, fácil de seguir, y enfocado en maximizar el uso de estos artículos. Incluye duración aproximada ⏱️ y frecuencia semanal 🗓️. Si hay suplementos 💊, sugiere cuándo tomarlos. Si no hay suficientes artículos para un plan completo, sugiere cómo complementarlos 💡. Responde en español y utiliza formato Markdown para facilitar la lectura, incluyendo encabezados, listas y negritas.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (dom.generatedPlanText) dom.generatedPlanText.innerHTML = marked.parse(text); // Render Markdown
+                } else {
+                    if (dom.generatedPlanText) dom.generatedPlanText.textContent = t.planGenerationError;
+                }
+            } catch (error) {
+                console.error("Error generating workout plan:", error);
+                if (dom.generatedPlanText) dom.generatedPlanText.textContent = t.planGenerationError;
+            } finally {
+                if (dom.loadingPlan) dom.loadingPlan.classList.add('hidden');
+            }
+        };
+
+        // Function to generate WhatsApp message for the workout plan
+        const generateWorkoutPlanWhatsAppMessage = () => {
+            const t = TRANSLATIONS[state.lang];
+            const phoneNumber = "573006101221"; // User's provided phone number
+            const planTitle = dom.workoutPlanTitle ? dom.workoutPlanTitle.textContent : "Plan de Entrenamiento";
+            const planContent = dom.generatedPlanText ? dom.generatedPlanText.innerText : ""; // Get plain text content
+
+            let message = `*${planTitle}*\n\n${planContent}\n\n¡Espero que te sea muy útil! 💪🏋️‍♀️`;
+            return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        };
+
+        // Function to generate meal plan using Gemini API
+        const generateMealPlan = async () => {
+            const t = TRANSLATIONS[state.lang];
+            toggleMealPlanModal(true); // Show the meal plan modal
+
+            if (dom.loadingMealPlan) dom.loadingMealPlan.classList.remove('hidden');
+            if (dom.generatedMealPlanText) dom.generatedMealPlanText.innerHTML = ''; // Clear previous content
+            if (dom.mealPlanTitle) dom.mealPlanTitle.textContent = t.mealPlanTitle; // Set title immediately
+
+            const selectedItems = state.cart.map(item => {
+                const product = ALL_PRODUCTS.find(p => p.id === item.id);
+                return `${product ? product.name : 'Artículo desconocido'} (Cantidad: ${item.quantity})`;
+            }).join(', ');
+
+            // Prompt for meal plan generation
+            const prompt = `Genera un plan de comidas personalizado, infográfico y visualmente atractivo con emojis 🍎🥦🥛, basado en los siguientes artículos seleccionados de un gimnasio (presta especial atención a los suplementos): ${selectedItems}. El plan debe ser conciso, fácil de seguir, y enfocado en la nutrición para el ejercicio. Incluye sugerencias de comidas para desayuno, almuerzo, cena y snacks, y cuándo tomar los suplementos. Si no hay suficientes artículos para un plan completo, sugiere cómo complementarlos💡. Responde en español y utiliza formato Markdown para facilitar la lectura, incluyendo encabezados, listas y negritas.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (dom.generatedMealPlanText) dom.generatedMealPlanText.innerHTML = marked.parse(text); // Render Markdown
+                } else {
+                    if (dom.generatedMealPlanText) dom.generatedMealPlanText.textContent = t.mealPlanGenerationError;
+                }
+            } catch (error) {
+                console.error("Error generating meal plan:", error);
+                if (dom.generatedMealPlanText) dom.generatedMealPlanText.textContent = t.mealPlanGenerationError;
+            } finally {
+                if (dom.loadingMealPlan) dom.loadingMealPlan.classList.add('hidden');
+            }
+        };
+
+        // Function to add a message to the chat history display
+        const addChatMessage = (sender, message) => {
+            if (!dom.chatMessagesContainer) {
+                console.error("Chat messages container not found.");
+                return;
+            }
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', sender);
+
+            const avatar = document.createElement('div');
+            avatar.classList.add('chat-avatar');
+            avatar.innerHTML = sender === 'user' ? '👤' : '🤖'; // User or bot icon
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('chat-bubble');
+            bubble.innerHTML = marked.parse(message); // Render Markdown in bubble
+
+            if (sender === 'user') {
+                messageElement.appendChild(bubble);
+                messageElement.appendChild(avatar);
+            } else {
+                messageElement.appendChild(avatar);
+                messageElement.appendChild(bubble);
+            }
+            dom.chatMessagesContainer.appendChild(messageElement);
+            dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight; // Auto-scroll
+        };
+
+        // Function to ask the fitness coach (now GymBroT)
+        const askFitnessCoach = async () => {
+            const t = TRANSLATIONS[state.lang];
+            const question = dom.coachQuestionInput ? dom.coachQuestionInput.value.trim() : '';
+
+            if (!question) {
+                addChatMessage('bot', "Por favor, escribe tu pregunta. 🤔");
+                return;
+            }
+
+            addChatMessage('user', question); // Add user message to chat
+            if (dom.coachQuestionInput) dom.coachQuestionInput.value = ''; // Clear input
+
+            if (dom.loadingCoachResponse) {
+                dom.loadingCoachResponse.classList.remove('hidden');
+                if (dom.chatMessagesContainer) dom.chatMessagesContainer.appendChild(dom.loadingCoachResponse); // Move loading indicator to chat area
+            }
+
+            // Updated prompt for GymBroT: Expert in Nutrition and Fitness
+            const prompt = `Actúa como un *GymBroT*, un entrenador experto en nutrición y fitness. Responde a la siguiente pregunta de manera concisa, útil y motivadora, utilizando emojis relevantes cuando sea apropiado y formato Markdown para facilitar la lectura. Tu objetivo es guiar al usuario en temas de alimentación, suplementos, rutinas de ejercicio y bienestar general en el gimnasio:\n\nPregunta: "${question}"`;
+
+            try {
+                let currentChatHistory = [];
+                // Add previous chat history to maintain context
+                state.chatHistory.forEach(msg => currentChatHistory.push(msg));
+                currentChatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                
+                const payload = { contents: currentChatHistory };
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const botResponse = result.candidates[0].content.parts[0].text;
+                    addChatMessage('bot', botResponse); // Add bot response to chat
+                    state.chatHistory.push({ role: "user", parts: [{ text: question }] }); // Save user message
+                    state.chatHistory.push({ role: "model", parts: [{ text: botResponse }] }); // Save bot response
+                    saveState(); // Save updated chat history
+                } else {
+                    addChatMessage('bot', t.coachQAGenerationError);
+                }
+            } catch (error) {
+                console.error("Error generating coach response:", error);
+                addChatMessage('bot', t.coachQAGenerationError);
+            } finally {
+                if (dom.loadingCoachResponse) dom.loadingCoachResponse.classList.add('hidden');
+                if (dom.chatMessagesContainer) dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight; // Ensure scroll to bottom after response
+            }
+        };
+
+        // Function to show toast notification
+        let toastTimeout;
+        const showToast = (message) => {
+            if (!dom.toastNotification || !dom.toastMessage) {
+                console.error("Toast notification elements not found.");
+                return;
+            }
+            dom.toastMessage.textContent = message;
+            dom.toastNotification.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                dom.toastNotification.classList.remove('show');
+            }, 3000); // Hide after 3 seconds
+        };
+
+
+        // --- SETUP DE EVENT LISTENERS ---
+        function setupEventListeners() {
+            document.body.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const id = parseInt(button.dataset.id);
+                const category = button.dataset.category;
+
+                if (button.classList.contains('add-to-cart-btn')) {
+                    handleCartAction('add', id);
+                    handleFlyToCartAnimation(button);
+                } else if (button.classList.contains('increase-quantity-btn')) handleCartAction('increase', id);
+                else if (button.classList.contains('decrease-quantity-btn')) handleCartAction('decrease', id);
+                else if (button.classList.contains('remove-item-btn')) handleCartAction('remove', id);
+                else if (button.id === 'clear-cart-btn') handleCartAction('clear');
+                else if (button.id === 'whatsapp-btn') window.open(`https://api.whatsapp.com/send?text=${generateWhatsAppMessage()}`, '_blank');
+                else if (button.id === 'generate-plan-btn') { // New button for AI workout plan
+                    generateWorkoutPlan();
+                }
+                else if (button.id === 'generate-meal-plan-btn') { // New button for AI meal plan
+                    generateMealPlan();
+                }
+                else if (button.id === 'save-pdf-btn' || button.id === 'print-plan-btn') {
+                    window.print(); // Triggers print dialog, usually includes Save as PDF
+                }
+                else if (button.id === 'share-plan-whatsapp-btn') {
+                    window.open(generateWorkoutPlanWhatsAppMessage(), '_blank');
+                }
+                else if (button.id === 'save-meal-pdf-btn' || button.id === 'print-meal-plan-btn') {
+                    window.print(); // Triggers print dialog for meal plan
+                }
+                else if (button.id === 'share-meal-plan-whatsapp-btn') {
+                    window.open(generateMealPlanWhatsAppMessage(), '_blank');
+                }
+                else if (button.id === 'chatbot-toggle-btn') { // Toggle chatbot modal
+                    toggleCoachQAModal(true);
+                    if (dom.coachQATitle) dom.coachQATitle.textContent = TRANSLATIONS[state.lang].gymBroTTitle; 
+                    if (dom.chatMessagesContainer) dom.chatMessagesContainer.innerHTML = ''; // Clear previous messages on open, will be rebuilt from history
+                    if (dom.coachQuestionInput) dom.coachQuestionInput.value = ''; // Clear previous question
+                    // Rebuild chat history on open
+                    state.chatHistory.forEach(msg => {
+                        if (msg.role === 'user') {
+                            addChatMessage('user', msg.parts[0].text);
+                        } else if (msg.role === 'model') {
+                            addChatMessage('bot', msg.parts[0].text);
+                        }
+                    });
+                    // Add welcome message if chat is empty after loading history
+                    if (state.chatHistory.length === 0) {
+                        addChatMessage('bot', TRANSLATIONS[state.lang].gymBroTWelcome);
+                    }
+                }
+                else if (button.id === 'ask-question-btn') { // Button inside coach Q&A modal
+                    askFitnessCoach();
+                }
+                else if (button.classList.contains('category-btn')) {
+                    state.activeCategory = category;
+                    renderCategoryFilters();
+                    renderProducts();
+                }
+            });
+
+            if (dom.langSwitcher) dom.langSwitcher.addEventListener('change', (e) => { state.lang = e.target.value; saveState(); updateUI(); });
+            if (dom.currencySwitcher) dom.currencySwitcher.addEventListener('change', (e) => { state.currency = e.target.value; saveState(); updateUI(); });
+            if (dom.searchInput) dom.searchInput.addEventListener('input', (e) => { state.searchQuery = e.target.value; renderProducts(); });
+            if (dom.darkModeToggle) dom.darkModeToggle.addEventListener('click', () => {
+                state.darkMode = !state.darkMode;
+                document.documentElement.classList.toggle('dark', state.darkMode);
+                saveState();
+                updateDarkModeToggle();
+            });
+            
+            if (dom.viewCartBtn) dom.viewCartBtn.addEventListener('click', () => toggleModal(true));
+            if (dom.closeModalBtn) dom.closeModalBtn.addEventListener('click', () => toggleModal(false));
+            if (dom.mobileCartModal) dom.mobileCartModal.addEventListener('click', (e) => { if (e.target === dom.mobileCartModal) toggleModal(false); });
+
+            // New event listeners for workout plan modal
+            if (dom.closeWorkoutPlanModalBtn) dom.closeWorkoutPlanModalBtn.addEventListener('click', () => toggleWorkoutPlanModal(false));
+            if (dom.workoutPlanModal) dom.workoutPlanModal.addEventListener('click', (e) => { if (e.target === dom.workoutPlanModal) toggleWorkoutPlanModal(false); });
+
+            // New event listeners for meal plan modal
+            if (dom.closeMealPlanModalBtn) dom.closeMealPlanModalBtn.addEventListener('click', () => toggleMealPlanModal(false));
+            if (dom.mealPlanModal) dom.mealPlanModal.addEventListener('click', (e) => { if (e.target === dom.mealPlanModal) toggleMealPlanModal(false); });
+
+            // New event listeners for coach Q&A modal
+            if (dom.closeCoachQAModalBtn) dom.closeCoachQAModalBtn.addEventListener('click', () => toggleCoachQAModal(false));
+            if (dom.coachQAModal) dom.coachQAModal.addEventListener('click', (e) => { if (e.target === dom.coachQAModal) toggleCoachQAModal(false); });
+
+            // Event listener for Enter key in chat input
+            if (dom.coachQuestionInput) dom.coachQuestionInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent new line
+                    if (dom.askQuestionBtn) dom.askQuestionBtn.click(); // Trigger send button click
+                }
+            });
+        }
+
+        // --- DEFINICIONES Y HELPERS ---
+        function defineDomAndTranslations() {
+            // Asignaciones directas para mayor robustez
+            dom.productList = document.getElementById('product-list');
+            dom.categoryFilters = document.getElementById('category-filters');
+            dom.searchInput = document.getElementById('search-input');
+            dom.cartItemsDesktop = document.getElementById('cart-items-desktop');
+            dom.cartTotalsDesktop = document.getElementById('cart-totals-desktop');
+            dom.cartButtonsDesktop = document.getElementById('cart-buttons-desktop');
+            dom.cartItemsMobile = document.getElementById('cart-items-mobile');
+            dom.cartTotalsMobile = document.getElementById('cart-totals-mobile');
+            dom.mobileTotalAmount = document.getElementById('mobile-total-amount');
+            dom.viewCartBtn = document.getElementById('view-cart-btn');
+            dom.mobileCartModal = document.getElementById('mobile-cart-modal');
+            dom.modalContent = document.getElementById('modal-content');
+            dom.closeModalBtn = document.getElementById('close-modal-btn');
+            dom.mobileCartIcon = document.getElementById('mobile-cart-icon');
+            dom.langSwitcher = document.getElementById('language-switcher');
+            dom.currencySwitcher = document.getElementById('currency-switcher');
+            dom.darkModeToggle = document.getElementById('dark-mode-toggle');
+            dom.workoutPlanModal = document.getElementById('workout-plan-modal');
+            dom.workoutPlanModalContent = document.getElementById('workout-plan-modal-content');
+            dom.closeWorkoutPlanModalBtn = document.getElementById('close-workout-plan-modal-btn');
+            dom.workoutPlanTitle = document.getElementById('workout-plan-title');
+            dom.loadingPlan = document.getElementById('loading-plan');
+            dom.generatedPlanText = document.getElementById('generated-plan-text');
+            dom.mealPlanModal = document.getElementById('meal-plan-modal');
+            dom.mealPlanModalContent = document.getElementById('meal-plan-modal-content');
+            dom.closeMealPlanModalBtn = document.getElementById('close-meal-plan-modal-btn');
+            dom.mealPlanTitle = document.getElementById('meal-plan-title');
+            dom.loadingMealPlan = document.getElementById('loading-meal-plan');
+            dom.generatedMealPlanText = document.getElementById('generated-plan-text');
+            dom.chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+            dom.coachQAModal = document.getElementById('coach-qa-modal');
+            dom.coachQAModalContent = document.getElementById('coach-qa-modal-content');
+            dom.closeCoachQAModalBtn = document.getElementById('close-coach-qa-modal-btn');
+            dom.coachQATitle = document.getElementById('coach-qa-title');
+            dom.coachQuestionInput = document.getElementById('coach-question-input');
+            dom.askQuestionBtn = document.getElementById('ask-question-btn');
+            dom.loadingCoachResponse = document.getElementById('loading-coach-response');
+            dom.chatMessagesContainer = document.getElementById('chat-messages-container'); 
+            dom.cartCountDesktop = document.getElementById('cart-count-desktop');
+            dom.cartCountMobile = document.getElementById('cart-count-mobile');
+            dom.toastNotification = document.getElementById('toast-notification');
+            dom.toastMessage = document.getElementById('toast-message');
+
+            // Añadir logs para verificar si los elementos se encuentran
+            console.log('--- Verificación de inicialización de elementos DOM ---');
+            for (const key in dom) {
+                if (dom.hasOwnProperty(key)) {
+                    if (dom[key] === null) {
+                        console.error(`Elemento DOM para '${key}' no encontrado (null).`);
+                    } else if (dom[key] === undefined) {
+                        console.error(`Elemento DOM para '${key}' es undefined.`);
+                    } else {
+                        console.log(`Elemento DOM para '${key}' encontrado.`);
+                    }
+                }
+            }
+            console.log('----------------------------------------');
+            
+            // Estos innerHTML ahora se asignan después de que los elementos se han obtenido
+            if (dom.langSwitcher) dom.langSwitcher.innerHTML = `<option value="es">Español</option><option value="en">English</option>`;
+            if (dom.currencySwitcher) dom.currencySwitcher.innerHTML = `<option value="COP">COP 🇨🇴</option><option value="USD">USD 🇺🇸</option><option value="EUR">EUR 🇪🇺</option>`;
+        }
+    </script>
 </body>
 </html>
